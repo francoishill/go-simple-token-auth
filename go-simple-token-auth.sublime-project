@@ -1,0 +1,12 @@
+{
+	"folders":
+	[
+		{
+			"file_exclude_patterns":
+			[
+				"go-simple-token-auth.sublime-project"
+			],
+			"path": "."
+		}
+	]
+}
