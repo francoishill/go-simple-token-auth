@@ -29,9 +29,11 @@ func (this *DefaultKeyValueStoreProvider) GetNewConnection() IKeyValueStore {
 			panic(err)
 		}
 
-		if _, err := this.instanceKeyValueStore.conn.Do("AUTH", this.redisAuthPassword); err != nil {
-			this.instanceKeyValueStore.conn.Close()
-			panic(err)
+		if this.redisAuthPassword != "" {
+			if _, err := this.instanceKeyValueStore.conn.Do("AUTH", this.redisAuthPassword); err != nil {
+				this.instanceKeyValueStore.conn.Close()
+				panic(err)
+			}
 		}
 	}
 
