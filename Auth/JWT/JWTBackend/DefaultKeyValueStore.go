@@ -13,7 +13,12 @@ func (this *DefaultKeyValueStore) SetValue(key string, value string, expiration 
 }
 
 func (this *DefaultKeyValueStore) GetValue(key string) (interface{}, error) {
-	return this.diskvInstance.Read(key)
+	val, err := this.diskvInstance.Read(key)
+	if err != nil {
+		//This is required, otherwise we return an empty byte array
+		return nil, err
+	}
+	return val, err
 }
 
 func (this *DefaultKeyValueStore) CloseConnection() error {
