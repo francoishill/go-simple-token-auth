@@ -1,41 +1,27 @@
 package JWTBackend
 
 import (
-	"github.com/garyburd/redigo/redis"
+	"github.com/peterbourgon/diskv"
 )
 
 type DefaultKeyValueStoreProvider struct {
-	redisNetworkHostAndPort string
-	redisAuthPassword       string
-	instanceKeyValueStore   *DefaultKeyValueStore
+	storeInstance *DefaultKeyValueStore
 }
 
-func ConstructDefaultKeyValueStoreProvider(redisNetworkHostAndPort, redisAuthPassword string) IKeyValueStoreProvider {
+func ConstructDefaultKeyValueStoreProvider() IKeyValueStoreProvider {
+	flatTransform := func(s string) []string { return []string{} }
+
 	return &DefaultKeyValueStoreProvider{
-		redisAuthPassword:       redisAuthPassword,
-		redisNetworkHostAndPort: redisNetworkHostAndPort,
-		instanceKeyValueStore:   nil,
+		storeInstance: &DefaultKeyValueStore{
+			diskv.New(diskv.Options{
+				BasePath:     "tmp-key-vals",
+				Transform:    flatTransform,
+				CacheSizeMax: 10 * 1024 * 1024,
+			}),
+		},
 	}
 }
 
 func (this *DefaultKeyValueStoreProvider) GetNewConnection() IKeyValueStore {
-	if this.instanceKeyValueStore == nil {
-		this.instanceKeyValueStore = new(DefaultKeyValueStore)
-		var err error
-
-		this.instanceKeyValueStore.conn, err = redis.Dial("tcp", this.redisNetworkHostAndPort)
-
-		if err != nil {
-			panic(err)
-		}
-
-		if this.redisAuthPassword != "" {
-			if _, err := this.instanceKeyValueStore.conn.Do("AUTH", this.redisAuthPassword); err != nil {
-				this.instanceKeyValueStore.conn.Close()
-				panic(err)
-			}
-		}
-	}
-
-	return this.instanceKeyValueStore
+	return this.storeInstance
 }

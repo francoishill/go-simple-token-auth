@@ -1,27 +1,22 @@
 package JWTBackend
 
 import (
-	"github.com/garyburd/redigo/redis"
+	"github.com/peterbourgon/diskv"
 )
 
 type DefaultKeyValueStore struct {
-	conn redis.Conn
+	diskvInstance *diskv.Diskv
 }
 
 func (this *DefaultKeyValueStore) SetValue(key string, value string, expiration ...interface{}) error {
-	_, err := this.conn.Do("SET", key, value)
-
-	if err == nil && expiration != nil {
-		this.conn.Do("EXPIRE", key, expiration[0])
-	}
-
-	return err
+	return this.diskvInstance.Write(key, []byte(value))
 }
 
 func (this *DefaultKeyValueStore) GetValue(key string) (interface{}, error) {
-	return this.conn.Do("GET", key)
+	return this.diskvInstance.Read(key)
 }
 
 func (this *DefaultKeyValueStore) CloseConnection() error {
-	return this.conn.Close()
+	//Do nothing
+	return nil
 }
