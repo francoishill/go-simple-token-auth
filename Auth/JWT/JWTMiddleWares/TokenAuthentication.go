@@ -6,11 +6,20 @@ import (
 	"net/http"
 )
 
+var TokenHandlers iTokenHandlers = nil
+
+type iTokenHandlers interface {
+	HandleTokenExtractedSuccessfully(http.ResponseWriter, *http.Request, *jwt.Token)
+}
+
 func RequireTokenAuthentication(rw http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	authBackend := JWTBackend.CurrentGlobalAuthenticationBackend
 
 	token, err := jwt.ParseFromRequest(req, authBackend.GetPublicKey)
 	//TODO: We should probably check for specific errors like 'jwt.ValidationErrorExpired'
+	if TokenHandlers != nil {
+		TokenHandlers.HandleTokenExtractedSuccessfully(rw, req, token)
+	}
 
 	if err == nil && token.Valid && !authBackend.IsInBlacklist(req.Header.Get("Authorization")) {
 		next(rw, req)
