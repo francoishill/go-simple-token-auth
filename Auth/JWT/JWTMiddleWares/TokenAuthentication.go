@@ -17,11 +17,11 @@ func RequireTokenAuthentication(rw http.ResponseWriter, req *http.Request, next 
 
 	token, err := jwt.ParseFromRequest(req, authBackend.GetPublicKey)
 	//TODO: We should probably check for specific errors like 'jwt.ValidationErrorExpired'
-	if TokenHandlers != nil {
-		TokenHandlers.HandleTokenExtractedSuccessfully(rw, req, token)
-	}
 
 	if err == nil && token.Valid && !authBackend.IsInBlacklist(req.Header.Get("Authorization")) {
+		if TokenHandlers != nil {
+			TokenHandlers.HandleTokenExtractedSuccessfully(rw, req, token)
+		}
 		next(rw, req)
 	} else {
 		rw.WriteHeader(http.StatusUnauthorized)
