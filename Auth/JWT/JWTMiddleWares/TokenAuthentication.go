@@ -1,9 +1,10 @@
 package JWTMiddleWares
 
 import (
+	"net/http"
+
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/francoishill/go-simple-token-auth/Auth/JWT/JWTBackend"
-	"net/http"
 )
 
 type iTokenHandlers interface {
@@ -26,7 +27,7 @@ func (j *JWTMiddleWares) RequireTokenAuthentication(rw http.ResponseWriter, req 
 		}
 		next(rw, req)
 	} else {
-		rw.WriteHeader(http.StatusUnauthorized)
+		http.Error(rw, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 	}
 }
 
